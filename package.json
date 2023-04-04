@@ -1,0 +1,17 @@
+{
+  "name": "oswap-token-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "aa-hooks": "^0.0.9",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "moment": "^2.29.4"
+  }
+}
