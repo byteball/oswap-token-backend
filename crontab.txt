@@ -1,0 +1,1 @@
+*/20 * * * * cd oswap-token-backend; node check_daemon.js 1>>~/.config/oswap-token-backend/check_daemon.log 2>>~/.config/oswap-token-backend/check_daemon.err
