@@ -9,8 +9,8 @@ bootstrap().then(() => {
   new Hooks([process.env.AA_ADDRESS])
     .register(tradeHandler)
     .isSuccess()
-    .responseKeyContains("price")
-    .responseKeyContains("coef_multiplier")
-    .responseKeyContains("swap_fee")
-    .responseKeyContains("fee%");
+    .responseContainsKey("price")
+    .responseContainsKey("coef_multiplier")
+    .responseContainsKey("swap_fee")
+    .responseContainsKey("fee%");
 });
