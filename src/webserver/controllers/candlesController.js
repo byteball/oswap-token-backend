@@ -3,7 +3,7 @@ const { DbService } = require("../../db");
 module.exports = async (req, res) => {
   try {
     const {
-      query: { type = "hourly", onlyPrice = false, limit },
+      query: { type = "auto", onlyPrice = false, limit },
     } = req;
 
     if (limit) {
