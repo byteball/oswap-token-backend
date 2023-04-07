@@ -4,6 +4,8 @@ const moment = require("moment");
 
 const { objectContains } = require("../utils");
 
+const MAX_DAYS_HOURLY_AUTO = 30;
+
 class DbService {
   static async create() {
     await db.query(`CREATE TABLE IF NOT EXISTS ${conf.project_db_prefix || ""}_trades (
@@ -154,8 +156,8 @@ class DbService {
     }
   }
 
-  static async getCandles(customType, customLimit, showOnlyPrice, showHourlyIfDailySmall) {
-    if (customType !== "daily" && customType !== "hourly") throw Error("unknown type");
+  static async getCandles(customType, customLimit, showOnlyPrice) {
+    if (customType !== "daily" && customType !== "hourly" && customType !== "auto") throw Error("unknown type");
 
     const [first_trade] = await db.query(
       `SELECT * FROM ${conf.project_db_prefix || ""}_trades ORDER BY timestamp ASC LIMIT 1`
@@ -167,12 +169,17 @@ class DbService {
     let limit;
     let type;
 
-    if (customType === "daily" && showHourlyIfDailySmall && (now_ts - first_trade_ts) <= 3600 * 24 * 30) {
-      type = "hourly";
-      limit = 24 * 30;
+    if (customType === "auto") {
+      if ((now_ts - first_trade_ts) <= 3600 * 24 * MAX_DAYS_HOURLY_AUTO) {
+        type = "hourly";
+        limit = customLimit ? customLimit : 24 * MAX_DAYS_HOURLY_AUTO;
+      } else {
+        limit = customLimit ? customLimit : 30 * 12;
+        type = "daily";
+      }
     } else {
-      type = customType;
       limit = customLimit ? customLimit : customType === "hourly" ? 24 : 30 * 12;
+      type = customType;
     }
 
     const step_length = type === "hourly" ? 3600 : 24 * 3600; // hour in seconds OR day in seconds
