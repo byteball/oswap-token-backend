@@ -154,16 +154,27 @@ class DbService {
     }
   }
 
-  static async getCandles(type, customLimit, showOnlyPrice) {
-    if (type !== "daily" && type !== "hourly") throw Error("unknown type");
+  static async getCandles(customType, customLimit, showOnlyPrice, showHourlyIfDailySmall) {
+    if (customType !== "daily" && customType !== "hourly") throw Error("unknown type");
 
     const [first_trade] = await db.query(
       `SELECT * FROM ${conf.project_db_prefix || ""}_trades ORDER BY timestamp ASC LIMIT 1`
     );
 
     const first_trade_ts = first_trade?.timestamp || 0;
+    const now_ts = moment.utc().unix();
 
-    let limit = customLimit ? customLimit : type === "hourly" ? 24 : 30 * 12;
+    let limit;
+    let type;
+
+    if (customType === "daily" && showHourlyIfDailySmall && (now_ts - first_trade_ts) <= 3600 * 24 * 30) {
+      type = "hourly";
+      limit = 24 * 30;
+    } else {
+      type = customType;
+      limit = customLimit ? customLimit : customType === "hourly" ? 24 : 30 * 12;
+    }
+
     const step_length = type === "hourly" ? 3600 : 24 * 3600; // hour in seconds OR day in seconds
     const end = moment
       .utc()

@@ -3,7 +3,7 @@ const { DbService } = require("../../db");
 module.exports = async (req, res) => {
   try {
     const {
-      query: { type = "hourly", onlyPrice = false, limit },
+      query: { type = "hourly", onlyPrice = false, limit, showHourlyIfDailySmall = false },
     } = req;
 
     if (limit) {
@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
 
     const showOnlyPrice = onlyPrice && onlyPrice !== "false";
 
-    const candles = await DbService.getCandles(type, limit ? +limit : undefined, showOnlyPrice);
+    const candles = await DbService.getCandles(type, limit ? +limit : undefined, showOnlyPrice, !!showHourlyIfDailySmall);
 
     return res.send({ data: candles });
   } catch (e) {
