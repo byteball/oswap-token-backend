@@ -65,7 +65,7 @@ const getAppreciationResult = (state, appreciation_rate) => {
   };
 };
 
-const getAppreciationState = (state, appreciation_rate) => {
+const getUpdatedState = (state, appreciation_rate) => {
   const appr_res = getAppreciationResult(state, appreciation_rate);
 
   return {
@@ -76,7 +76,7 @@ const getAppreciationState = (state, appreciation_rate) => {
   };
 };
 
-exports.getAppreciationState = getAppreciationState;
+exports.getUpdatedState = getUpdatedState;
 exports.exists = exists;
 exports.objectContains = objectContains;
 exports.getExchangeRates = getExchangeRates;

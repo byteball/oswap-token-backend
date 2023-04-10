@@ -1,11 +1,10 @@
 const dag = require('aabot/dag.js');
 const moment = require('moment');
 
-const { getExchangeRates, getAppreciationState } = require('../../utils');
+const { getExchangeRates, getUpdatedState } = require('../../utils');
 
 const DECIMALS = 9;
 const CACHE_TS = 1800; // 30 min
-const MAX_SHOWN_APY = 7000;
 
 let poolsApy = { data: [], ts: undefined };
 
@@ -38,7 +37,7 @@ module.exports = async (_, res) => {
         const defMsg = objJoint.unit.messages.find(({ app }) => app === "definition");
 
         if (defMsg) {
-            addresses[asset] = defMsg.payload.definition[1].params.pool_aa;
+            addresses[asset] = defMsg.payload.definition[1]?.params?.pool_aa;
         }
     }
 
@@ -49,7 +48,7 @@ module.exports = async (_, res) => {
     const stakersShare = await dag.executeGetter(process.env.AA_ADDRESS, 'get_stakers_share', [])
     const inflationRate = await dag.executeGetter(process.env.AA_ADDRESS, 'get_inflation_rate', []);
 
-    const state = getAppreciationState(oldState, appreciationRate);
+    const state = getUpdatedState(oldState, appreciationRate);
     const gbyteToUSDRate = rates[`GBYTE_USD`];
 
     const totalNormalizedVp = state?.total_normalized_vp || 0;
@@ -73,7 +72,7 @@ module.exports = async (_, res) => {
         pools[i].apy = Number((rateOfReturn - 1) * 100).toPrecision(6);
     })
 
-    poolsApy = { data: pools.map(({ apy, asset }) => ({ asset, apy, address: addresses[asset] })).filter(({ apy }) => apy <= MAX_SHOWN_APY), ts: moment.utc().unix() };
+    poolsApy = { data: pools.map(({ apy, asset }) => ({ asset, apy, address: addresses[asset] })), ts: moment.utc().unix() };
 
     res.send(poolsApy);
 }
