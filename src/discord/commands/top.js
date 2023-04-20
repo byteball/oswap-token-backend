@@ -25,7 +25,7 @@ module.exports = {
             .slice(0, 10)
             .map((u) => ({
                 name: ' ',
-                value: `${u.address} staked ${+(u.balance / 10 ** 9).toFixed(9)} OSWAP until ${u.expiry}`
+                value: `[${u.address}](https://explorer.obyte.org/address/${u.address}) staked ${+(u.balance / 10 ** 9).toFixed(9)} OSWAP until ${u.expiry}`
             }));
 
         const exampleEmbed = {
