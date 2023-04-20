@@ -10,7 +10,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
     const author = responseObj.trigger_address;
     const ts = triggerUnit.timestamp;
     const changesData = [];
-    let hasNotOswapPool;
+    let hasNonOswapPool;
 
     for ([asset_key, vp] of Object.entries(changes)) {
         let poolInfo;
@@ -23,7 +23,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
 
         changesData.push({ symbol: poolInfo.symbol, name: poolInfo.name, change: vp, address: poolInfo.address, asset: poolInfo.asset });
 
-        if (!poolInfo.address) hasNotOswapPool = true;
+        if (!poolInfo.address) hasNonOswapPool = true;
     }
 
     const fields = changesData.map(({ change, address, symbol, name, asset }) => {
@@ -34,7 +34,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
     });
 
     const embed = new DiscordService.EmbedBuilder()
-        .setColor(!hasNotOswapPool ? conf.discord_primary_color : conf.discord_error_color)
+        .setColor(!hasNonOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle('Staking: move votes')
         .setTimestamp(ts * 1e3)
         .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)

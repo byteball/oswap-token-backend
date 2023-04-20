@@ -25,7 +25,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
     const amountView = +(amount / 1e9).toFixed(9);
 
     const pools = [];
-    let hasNotOswapPool = false;
+    let hasNonOswapPool = false;
 
     for (asset_key of poolKeys) {
         const poolInfo = await DbService.getPoolInfoByKeys(payload.group_key, asset_key);
@@ -38,7 +38,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         })
 
         if (!(poolInfo?.address)) {
-            hasNotOswapPool = true
+            hasNonOswapPool = true
         }
     }
 
@@ -49,7 +49,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
 
 
     const embed = new DiscordService.EmbedBuilder()
-        .setColor(!hasNotOswapPool ? conf.discord_primary_color : conf.discord_error_color)
+        .setColor(!hasNonOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Staking: ${amount > 0 ? "stake" : "re-stake"} OSWAP tokens`)
         .setTimestamp(ts * 1e3)
         .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
