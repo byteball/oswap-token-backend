@@ -27,7 +27,7 @@ exports.paramVotesHandler = async (triggerUnit, responseObj) => {
         .setColor(conf.discord_primary_color)
         .setTitle(`Parameters: support added in ${name}`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ name: 'Value', value: String(value), inline: true })
         .addFields({ name: 'Vote VP', value: String(voteVpView), inline: true })
         .addFields({ name: 'Current VP', value: String(currentVpView), inline: true })

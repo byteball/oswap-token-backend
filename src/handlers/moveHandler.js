@@ -37,7 +37,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
         .setColor(!hasNotOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle('Staking: move votes')
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .addFields({ value: "**Changes**", name: ' ' })
         .addFields(fields)

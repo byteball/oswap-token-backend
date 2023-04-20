@@ -8,7 +8,7 @@ const { getDataByTriggerUnit } = require("../utils")
 
 exports.stakeHandler = async (triggerUnit, responseObj) => {
     const payload = getDataByTriggerUnit(triggerUnit);
-    const author = responseObj.trigger_address;
+    const author = payload?.to || responseObj.trigger_address;
     const ts = triggerUnit.timestamp;
     const poolKeys = Object.keys(payload.percentages);
     const untilDate = moment.unix(ts).add(payload.term, 'days').format("LL");
@@ -52,7 +52,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         .setColor(!hasNotOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Staking: ${amount > 0 ? "stake" : "re-stake"} OSWAP tokens`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields(amountFields)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .addFields({ value: `**Term:** ${payload.term} days (until ${untilDate})`, name, inline: false })

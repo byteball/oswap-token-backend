@@ -24,7 +24,7 @@ exports.withdrawRewardHandler = async (triggerUnit, responseObj) => {
         .setColor(conf.discord_primary_color)
         .setTitle('Staking: withdraw rewards')
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Amount:** ${amountView} OSWAP`, name: ' ', inline: false })
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')

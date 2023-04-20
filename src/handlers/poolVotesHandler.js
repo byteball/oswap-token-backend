@@ -53,7 +53,7 @@ exports.poolVotesHandler = async (triggerUnit, responseObj) => {
         .setColor(address ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Whitelist: voted ${vote_whitelist ? 'for' : 'against'}`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .addFields({ value: `**Vote VP:** ${currentUserVpView}`, name: ' ', inline: false })
         .addFields({ value: `**Current VP:** ${currentVpView}`, name: ' ', inline: false })

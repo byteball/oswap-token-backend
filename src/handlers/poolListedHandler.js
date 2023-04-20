@@ -88,7 +88,7 @@ exports.poolListedHandlerNotification = async (triggerUnit, responseObj) => {
         .setColor(address ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Whitelist: Pool was ${message}`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/#/${triggerUnit.unit}`)
+        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .addFields({ value: `**Pool name:** [${address ? symbol || name : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
