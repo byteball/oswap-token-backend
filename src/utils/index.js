@@ -2,6 +2,7 @@ const moment = require('moment');
 const network = require('ocore/network.js');
 
 const YEAR = 360 * 24 * 3600;
+const COMMON_TS = 1657843200;
 
 const exists = (array) => {
   array.forEach((item) => {
@@ -76,7 +77,23 @@ const getUpdatedState = (state, appreciation_rate) => {
   };
 };
 
+const getDataByTriggerUnit = (triggerUnit)=> {
+  return triggerUnit.messages.find((m => m.app === 'data'))?.payload || {};
+}
+
+const getResponseVarsByResponseObj = (responseObj) => {
+  return responseObj?.response?.responseVars || {}
+}
+
+const getCurrentVpByNormalized = (normalized_vp) => {
+  return normalized_vp / 4 ** ((moment.utc().unix() - COMMON_TS) / YEAR);
+};
+
+
 exports.getUpdatedState = getUpdatedState;
 exports.exists = exists;
 exports.objectContains = objectContains;
 exports.getExchangeRates = getExchangeRates;
+exports.getDataByTriggerUnit = getDataByTriggerUnit;
+exports.getCurrentVpByNormalized = getCurrentVpByNormalized;
+exports.getResponseVarsByResponseObj = getResponseVarsByResponseObj;
