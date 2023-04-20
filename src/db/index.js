@@ -51,7 +51,47 @@ class DbService {
 			close_coef_multiplier REAL DEFAULT 1
 		)`);
 
+    await db.query(`CREATE TABLE IF NOT EXISTS ${conf.project_db_prefix || ""}_pools (
+      asset CHAR(44) PRIMARY KEY NOT NULL,
+      asset_key CHAR(10) NOT NULL,
+      group_key CHAR(10) NOT NULL,
+      address CHAR(32),
+      name CHAR(50),
+      symbol CHAR(50),
+      status CHAR(10) NOT NULL,
+      updated_symbol_ts TIMESTAMP NOT NULL
+    )`);
+
     console.error("db installed");
+  }
+
+  static async savePool(data) {
+    const expectedFields = [
+      "asset",
+      "asset_key",
+      "group_key",
+      "address",
+      "name",
+      "symbol",
+      "status",
+      "updated_symbol_ts"
+    ];
+
+    const { fields, values, length } = objectContains(data, expectedFields);
+
+    const pool = await this.getPoolInfoByKeys(data.group_key, data.asset_key);
+
+    if (!pool) {
+      await db.query(
+        `INSERT INTO ${conf.project_db_prefix || ""}_pools (${fields.join(", ")}) VALUES (?${", ?".repeat(length - 1)})`,
+        values
+      );
+    } else {
+      await db.query(
+        `UPDATE ${conf.project_db_prefix || ""}_pools SET name=?, symbol=?, status=?, updated_symbol_ts=? WHERE group_key=? AND asset_key=?`,
+        [data.name, data.symbol, data.status, data.updated_symbol_ts, data.group_key, data.asset_key]
+      );
+    }
   }
 
   static async saveTrade(data) {
@@ -265,6 +305,12 @@ class DbService {
     }
 
     return showOnlyPrice ? data.map(({ open_price }) => open_price) : data;
+  }
+
+  static async getPoolInfoByKeys(group_key, asset_key) {
+    const rows = await db.query(`SELECT * FROM ${conf.project_db_prefix || ""}_pools WHERE group_key = ? AND asset_key = ? LIMIT 1`, [group_key, asset_key])
+
+    return rows[0];
   }
 }
 
