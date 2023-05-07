@@ -30,7 +30,7 @@ exports.withdrawRewardHandler = async (triggerUnit, responseObj) => {
         .setThumbnail('https://token.oswap.io/logo.png')
         .setFooter({ text: 'You can withdraw your OSWAP rewards at token.oswap.io' })
 
-    if (amount > 0) {
+    if ((amount / 10 ** 9) >= 0.005) {
         DiscordService.send(embed);
     }
 }
