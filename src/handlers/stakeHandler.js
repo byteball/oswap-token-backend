@@ -61,6 +61,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         .setThumbnail('https://token.oswap.io/logo.png')
         .setFooter({ text: 'You can stake OSWAP token at token.oswap.io' });
 
-    DiscordService.send(embed);
-
+    if (amount > 0 ? true : process.env.DISCORD_EVENT_RESTAKE_TOKEN) {
+        DiscordService.send(embed);
+    }
 }

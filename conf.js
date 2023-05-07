@@ -10,4 +10,5 @@ exports.discord_bot_name = "OSWAP TOKEN";
 exports.discord_primary_color = "#295eff";
 exports.discord_error_color = "#FF1519";
 
+exports.discord_withdraw_reward_threshold = 0.005;
 console.error("finished server conf");
