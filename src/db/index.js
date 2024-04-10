@@ -230,7 +230,6 @@ class DbService {
       .unix();
 
     let start = end - step_length * limit;
-
     // 1st step: select all candles in period
     let rows = await db.query(
       `SELECT * FROM ${conf.project_db_prefix || ""}_${type}_candles WHERE start_timestamp >= ? ORDER BY start_timestamp DESC LIMIT ${limit}`,
@@ -270,10 +269,7 @@ class DbService {
     rows = rows.reverse();
 
     for (let currentTs = start; currentTs < end; currentTs += step_length) {
-      if (
-        rows[currentRowIndex] &&
-        rows[currentRowIndex].start_timestamp === currentTs
-      ) {
+      if (rows[currentRowIndex] && currentTs >= rows[currentRowIndex].start_timestamp) {
         // we have a candle with this timestamp
         data.push({ ...rows[currentRowIndex], start_timestamp: currentTs });
         currentRowIndex++;
