@@ -28,7 +28,7 @@ exports.withdrawRewardHandler = async (triggerUnit, responseObj) => {
         .addFields({ value: `**Amount:** ${amountView} OSWAP`, name: ' ', inline: false })
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can withdraw your OSWAP rewards at token.oswap.io' })
+        .addFields({ value: 'You can withdraw your OSWAP rewards at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 
     if ((amount / 10 ** 9) >= conf.discord_withdraw_reward_threshold) {
         DiscordService.send(embed);

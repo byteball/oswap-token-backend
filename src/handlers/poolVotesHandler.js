@@ -59,7 +59,7 @@ exports.poolVotesHandler = async (triggerUnit, responseObj) => {
         .addFields({ value: `**Current VP:** ${currentVpView}`, name: ' ', inline: false })
         .addFields({ value: `**Pool name:** [${address ? symbol || name : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can vote at token.oswap.io' })
+        .addFields({ value: 'You can vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 
     DiscordService.send(embed);
 }

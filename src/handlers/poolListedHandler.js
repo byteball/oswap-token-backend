@@ -91,8 +91,8 @@ exports.poolListedHandlerNotification = async (triggerUnit, responseObj) => {
         .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .addFields({ value: `**Pool name:** [${address ? symbol || name : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
+        .addFields({ value: 'You can add pool or vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can add pool or vote at token.oswap.io' })
 
     DiscordService.send(embed);
 }

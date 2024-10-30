@@ -18,7 +18,7 @@ exports.paramCommitHandler = async (triggerUnit, responseObj) => {
         .addFields({ name: 'Value', value: String(value), inline: true })
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can vote at token.oswap.io' })
+        .addFields({ value: 'You can vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false });
 
     DiscordService.send(embed);
 }

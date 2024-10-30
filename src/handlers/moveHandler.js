@@ -42,7 +42,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
         .addFields({ value: "**Changes**", name: ' ' })
         .addFields(fields)
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can move votes at token.oswap.io' });
+        .addFields({ value: 'You can move votes at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 
     DiscordService.send(embed);
 }
