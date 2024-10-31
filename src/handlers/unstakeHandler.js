@@ -28,7 +28,7 @@ exports.unstakeHandler = async (triggerUnit, responseObj) => {
         .addFields({ value: `**Amount:** ${amountView} OSWAP`, name: ' ', inline: false })
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can unstake your OSWAP tokens at token.oswap.io' })
+        .addFields({ value: 'You can unstake your OSWAP tokens at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 
     if (amount > 0) {
         DiscordService.send(embed);

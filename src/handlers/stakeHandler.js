@@ -59,7 +59,8 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         .addFields({ value: "**Pool list**", name })
         .addFields(fields)
         .setThumbnail('https://token.oswap.io/logo.png')
-        .setFooter({ text: 'You can stake OSWAP token at token.oswap.io' });
+        .addFields({ value: `**Term:** ${payload.term} days (until ${untilDate})`, name: ' ', inline: false })
+        .addFields({ value: 'You can stake OSWAP token at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 
     if (amount > 0 ? true : process.env.DISCORD_EVENT_RESTAKE_TOKEN) {
         DiscordService.send(embed);
