@@ -10,10 +10,20 @@ module.exports = async () => {
     );
   }
 
-  if (process.env.DISCORD_CHANNEL && process.env.DISCORD_APP_ID && process.env.DISCORD_GUILD_ID && process.env.DISCORD_TOKEN) {
-    discordService.login();
+  if (process.env.DISCORD_CHANNEL && process.env.DISCORD_TOKEN) {
+    // not awaited on purpose: Discord login must not block AA event processing.
+    // login() retries internally; this .catch is a defensive backstop against unhandled rejections.
+    discordService.login().catch(err => console.error('[discord] login gave up:', err && err.message));
 
-    await discordService.initCommands();
+    // register slash commands (/info, /gbyte_price, /top) for the guild.
+    // requires DISCORD_APP_ID + DISCORD_GUILD_ID; failures are logged, not fatal.
+    if (process.env.DISCORD_APP_ID && process.env.DISCORD_GUILD_ID) {
+      try {
+        await discordService.initCommands();
+      } catch (err) {
+        console.error('[discord] failed to register slash commands:', err && err.message);
+      }
+    }
   } else if (
     process.env.DISCORD_EVENT_MOVE_VOTES
     || process.env.DISCORD_EVENT_PARAM_COMMIT
