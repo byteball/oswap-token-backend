@@ -16,13 +16,11 @@ module.exports = async () => {
     discordService.login().catch(err => console.error('[discord] login gave up:', err && err.message));
 
     // register slash commands (/info, /gbyte_price, /top) for the guild.
-    // requires DISCORD_APP_ID + DISCORD_GUILD_ID; failures are logged, not fatal.
+    // requires DISCORD_APP_ID + DISCORD_GUILD_ID. not awaited: registering must not
+    // block AA event processing on Discord REST latency; failures are logged, not fatal.
     if (process.env.DISCORD_APP_ID && process.env.DISCORD_GUILD_ID) {
-      try {
-        await discordService.initCommands();
-      } catch (err) {
-        console.error('[discord] failed to register slash commands:', err && err.message);
-      }
+      discordService.initCommands()
+        .catch(err => console.error('[discord] failed to register slash commands:', err && err.message));
     }
   } else if (
     process.env.DISCORD_EVENT_MOVE_VOTES

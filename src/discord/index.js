@@ -49,12 +49,15 @@ class DiscordService {
             this.ready = true;
 
             if (this.client.user.username !== conf.discord_bot_name) {
-                this.client.user.setUsername(conf.discord_bot_name);
+                // async REST call — must be caught, or a rejection becomes an
+                // uncaughtException (ocore rethrows it) and crashes the process
+                this.client.user.setUsername(conf.discord_bot_name)
+                    .catch(err => console.error('[discord] failed to set username:', err && err.message));
             }
 
             this.enableActivity();
 
-            console.error(`Logged in Discord as ${this.client.user.tag}!`);
+            console.error(`[discord] logged in as ${this.client.user.tag}`);
         });
 
         this.client.commands = new Collection();
@@ -72,7 +75,7 @@ class DiscordService {
             { body: [token.data.toJSON(), gbyte.data.toJSON(),  top.data.toJSON()] },
         );
 
-        console.error(`Successfully reloaded application (/) commands.`);
+        console.error(`[discord] registered application (/) commands`);
 
     }
 
@@ -104,7 +107,8 @@ class DiscordService {
     }
 
     #setBotActivity() {
-        return this.client.user.setActivity({ type: 3, name: process.env.AA_ADDRESS, url: "https://token.oswap.io" });
+        // user may be null briefly around (re)connect; ?. avoids a TypeError in the interval
+        return this.client.user?.setActivity({ type: 3, name: process.env.AA_ADDRESS, url: "https://token.oswap.io" });
     }
 
     enableActivity() {
