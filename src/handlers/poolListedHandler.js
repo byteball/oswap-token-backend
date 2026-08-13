@@ -1,9 +1,8 @@
 const dag = require('aabot/dag.js');
-const token_registry = require('aabot/token_registry.js');
 const conf = require("ocore/conf.js");
 const moment = require('moment');
 
-const { getDataByTriggerUnit, getResponseVarsByResponseObj } = require("../utils");
+const { getDataByTriggerUnit, getResponseVarsByResponseObj, getPoolAssetInfo } = require("../utils");
 const DiscordService = require("../discord");
 const { DbService } = require("../db");
 
@@ -13,31 +12,7 @@ exports.poolListedHandler = async (triggerUnit, responseObj) => {
 
     const poolInfo = await dag.readAAStateVars(process.env.AA_ADDRESS, `pool_${pool_asset}`).then((data) => data[`pool_${pool_asset}`]);
 
-    const symbol = await token_registry.getSymbolByAsset(pool_asset);
-
-    const objJoint = await dag.readJoint(pool_asset);
-
-    const defMsg = objJoint.unit.messages.find(({ app }) => app === "definition");
-
-    let address;
-
-    if (defMsg) {
-        address = defMsg.payload.definition[1]?.params?.pool_aa;
-    }
-
-    let name = null;
-
-    if (!symbol && address) {
-        const poolDef = await dag.readAADefinition(address);
-
-        const xAsset = poolDef[1].params.x_asset;
-        const yAsset = poolDef[1].params.y_asset;
-
-        const xSymbol = await token_registry.getSymbolByAsset(xAsset) || (`${xAsset.slice(0, 5)}...`);
-        const ySymbol = await token_registry.getSymbolByAsset(yAsset) || (`${yAsset.slice(0, 5)}...`);
-
-        name = `${xSymbol}-${ySymbol}`;
-    }
+    const { symbol, name, address } = await getPoolAssetInfo(pool_asset);
 
     if (poolInfo && poolInfo.asset_key) {
         await DbService.savePool({
@@ -59,30 +34,7 @@ exports.poolListedHandlerNotification = async (triggerUnit, responseObj) => {
     const author = responseObj.trigger_address;
     const ts = triggerUnit.timestamp;
 
-    const symbol = await token_registry.getSymbolByAsset(pool_asset);
-    const objJoint = await dag.readJoint(pool_asset);
-
-    const defMsg = objJoint.unit.messages.find(({ app }) => app === "definition");
-
-    let address;
-
-    if (defMsg) {
-        address = defMsg.payload.definition[1]?.params?.pool_aa;
-    }
-
-    let name = null;
-
-    if (!symbol && address) {
-        const poolDef = await dag.readAADefinition(address);
-
-        const xAsset = poolDef[1].params.x_asset;
-        const yAsset = poolDef[1].params.y_asset;
-
-        const xSymbol = await token_registry.getSymbolByAsset(xAsset) || (`${xAsset.slice(0, 5)}...`);
-        const ySymbol = await token_registry.getSymbolByAsset(yAsset) || (`${yAsset.slice(0, 5)}...`);
-
-        name = `${xSymbol}-${ySymbol}`;
-    }
+    const { symbol, name, address } = await getPoolAssetInfo(pool_asset);
 
     const embed = new DiscordService.EmbedBuilder()
         .setColor(address ? conf.discord_primary_color : conf.discord_error_color)
@@ -90,7 +42,7 @@ exports.poolListedHandlerNotification = async (triggerUnit, responseObj) => {
         .setTimestamp(ts * 1e3)
         .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
-        .addFields({ value: `**Pool name:** [${address ? symbol || name : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
+        .addFields({ value: `**Pool name:** [${address ? symbol || name || 'n/a' : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
         .addFields({ value: 'You can add pool or vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
 

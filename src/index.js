@@ -12,10 +12,17 @@ const { moveHandler } = require("./handlers/moveHandler.js");
 const { unstakeHandler } = require("./handlers/unstakeHandler.js");
 const { withdrawRewardHandler } = require("./handlers/withdrawRewardHandler.js");
 
+// aa-hooks already catches and logs errors thrown by hook callbacks, this covers everything
+// else (discord, webserver) that would otherwise fail silently
+process.on('unhandledRejection', (reason) => console.error('unhandled rejection', reason));
+
 bootstrap().then(async () => {
   require("./webserver");
 
-  const allEventsHooks = new Hooks([process.env.AA_ADDRESS]);
+  const allEventsHooks = new Hooks([process.env.AA_ADDRESS], {
+    logEvents: true,
+    logger: (message) => console.error(message),
+  });
 
   allEventsHooks.register(tradeHandler)
     .isSuccess()
@@ -37,7 +44,11 @@ bootstrap().then(async () => {
     .responseContainsKey("message")
 
   // keeps track of new events
-  const newEventsHooks = new Hooks([process.env.AA_ADDRESS], { newEventsOnly: true });
+  const newEventsHooks = new Hooks([process.env.AA_ADDRESS], {
+    newEventsOnly: true,
+    logEvents: true,
+    logger: (message) => console.error(message)
+  });
 
   if (process.env.DISCORD_EVENT_MOVE_VOTES) {
     newEventsHooks.register(moveHandler)
@@ -109,4 +120,7 @@ bootstrap().then(async () => {
       .isSuccess()
       .triggerDataContainsKey("withdraw_staking_reward")
   }
+}).catch((e) => {
+  console.error('startup failed', e);
+  process.exit(1);
 });

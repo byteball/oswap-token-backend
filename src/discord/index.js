@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, Events, REST, Routes, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Events, REST, Routes, EmbedBuilder, MessageFlags } = require('discord.js');
 const conf = require("ocore/conf.js");
 
 const token = require('./commands/token');
@@ -38,6 +38,19 @@ class DiscordService {
             } catch (error) {
                 console.error(`[discord] error executing ${interaction.commandName}:`, error && error.message);
                 console.error(error);
+
+                // without a reply the user is left staring at "The application did not respond"
+                try {
+                    const payload = { content: 'Something went wrong while running this command, please try again later.', flags: MessageFlags.Ephemeral };
+
+                    if (interaction.replied || interaction.deferred) {
+                        await interaction.followUp(payload);
+                    } else {
+                        await interaction.reply(payload);
+                    }
+                } catch (replyError) {
+                    console.error('[discord] failed to report the command error to the user:', replyError && replyError.message);
+                }
             }
         });
 

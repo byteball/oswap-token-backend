@@ -12,11 +12,11 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
     const ts = triggerUnit.timestamp;
     const poolKeys = Object.keys(payload.percentages);
     const untilDate = moment.unix(ts).add(payload.term, 'days').format("LL");
-    const tokenAsset = await dag.readAAStateVars(process.env.AA_ADDRESS, `constants`).then((vars) => vars.constants.asset);
+    const tokenAsset = await dag.readAAStateVars(process.env.AA_ADDRESS, `constants`).then((vars) => vars.constants?.asset);
 
     let amount = 0;
 
-    const msg = triggerUnit?.messages?.find(({ app, payload }) => app === 'payment' && payload && payload?.asset === tokenAsset && payload?.outputs.find(({ address }) => address === process.env.AA_ADDRESS));
+    const msg = tokenAsset && triggerUnit?.messages?.find(({ app, payload }) => app === 'payment' && payload && payload?.asset === tokenAsset && payload?.outputs?.find(({ address }) => address === process.env.AA_ADDRESS));
 
     if (msg) {
         amount += msg.payload.outputs.find(({ address }) => address === process.env.AA_ADDRESS)?.amount
@@ -27,7 +27,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
     const pools = [];
     let hasNonOswapPool = false;
 
-    for (asset_key of poolKeys) {
+    for (const asset_key of poolKeys) {
         const poolInfo = await DbService.getPoolInfoByKeys(payload.group_key, asset_key);
 
         pools.push({
@@ -43,7 +43,14 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
     }
 
     const name = ' ';
-    const fields = pools.map(({ view, percent, address, asset }) => ({ value: address ? `[${String(view)}](https://oswap.io/#/swap/${address}) — ${String(percent)}%` : `${`[\`NOT AN OSWAP POOL\`](https://explorer.obyte.org/asset/${asset}})`} — ${String(percent)}%`, name, inline: false }));
+    const fields = pools.map(({ view, percent, address, asset }) => {
+        // asset is unknown when the pool is missing from our db entirely, so there is nothing to link to
+        const poolView = address
+            ? `[${String(view)}](https://oswap.io/#/swap/${address})`
+            : (asset ? `[\`NOT AN OSWAP POOL\`](https://explorer.obyte.org/asset/${asset})` : '`NOT AN OSWAP POOL`');
+
+        return ({ value: `${poolView} — ${String(percent)}%`, name, inline: false });
+    });
 
     const amountFields = amount > 0 ? [{ value: `**Amount:** ${amountView} OSWAP`, name, inline: false }] : [];
 

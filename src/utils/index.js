@@ -1,8 +1,11 @@
 const moment = require('moment');
 const network = require('ocore/network.js');
+const dag = require('aabot/dag.js');
+const token_registry = require('aabot/token_registry.js');
 
 const YEAR = 360 * 24 * 3600;
 const COMMON_TS = 1657843200;
+const EXCHANGE_RATES_TIMEOUT = 30 * 1000;
 
 const exists = (array) => {
   array.forEach((item) => {
@@ -33,12 +36,60 @@ const objectContains = (obj, keys = []) => {
   };
 };
 
+// the light vendor callback is (ws, request, response) — the 2nd argument is the request,
+// not an error. Failures arrive as response.error, and an unresponsive hub means the callback
+// is never called at all, hence the timeout: otherwise the promise hangs forever.
 const getExchangeRates = () => {
-  return new Promise((resolve) => {
-    network.requestFromLightVendor('hub/get_exchange_rates', null, (ws, err, result) => {
-      resolve(result)
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      settled = true;
+      reject(Error("timed out waiting for exchange rates from the hub"));
+    }, EXCHANGE_RATES_TIMEOUT);
+
+    network.requestFromLightVendor('hub/get_exchange_rates', null, (ws, request, response) => {
+      if (settled) return;
+      clearTimeout(timer);
+
+      if (!response || response.error) {
+        return reject(Error(`failed to get exchange rates: ${(response && response.error) || "empty response"}`));
+      }
+
+      resolve(response);
     });
   })
+}
+
+// resolves how a pool asset should be displayed: its symbol from the token registry, or the
+// "XSYM-YSYM" pair read from the pool AA definition when the asset has no registered symbol.
+// address is undefined when the asset was not issued by an oswap pool — every step is optional
+// because the asset may be an arbitrary token and the definition may be unreadable.
+const getPoolAssetInfo = async (pool_asset) => {
+  const symbol = await token_registry.getSymbolByAsset(pool_asset);
+
+  const objJoint = await dag.readJoint(pool_asset);
+
+  const defMsg = objJoint?.unit?.messages?.find(({ app }) => app === "definition");
+  const address = defMsg?.payload?.definition?.[1]?.params?.pool_aa;
+
+  let name = null;
+
+  if (!symbol && address) {
+    const poolDef = await dag.readAADefinition(address);
+
+    const xAsset = poolDef?.[1]?.params?.x_asset;
+    const yAsset = poolDef?.[1]?.params?.y_asset;
+
+    if (xAsset && yAsset) {
+      const xSymbol = await token_registry.getSymbolByAsset(xAsset) || (`${xAsset.slice(0, 5)}...`);
+      const ySymbol = await token_registry.getSymbolByAsset(yAsset) || (`${yAsset.slice(0, 5)}...`);
+
+      name = `${xSymbol}-${ySymbol}`;
+    }
+  }
+
+  return { symbol, name, address };
 }
 
 const getAppreciationResult = (state, appreciation_rate) => {
@@ -94,6 +145,7 @@ exports.getUpdatedState = getUpdatedState;
 exports.exists = exists;
 exports.objectContains = objectContains;
 exports.getExchangeRates = getExchangeRates;
+exports.getPoolAssetInfo = getPoolAssetInfo;
 exports.getDataByTriggerUnit = getDataByTriggerUnit;
 exports.getCurrentVpByNormalized = getCurrentVpByNormalized;
 exports.getResponseVarsByResponseObj = getResponseVarsByResponseObj;
