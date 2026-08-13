@@ -11,6 +11,11 @@ module.exports = {
 			`SELECT * FROM ${conf.project_db_prefix || ""}_trades ORDER BY timestamp DESC LIMIT 1`
 		);
 
+		// no trades yet — happens right after a new AA is deployed
+		if (!last_trade) {
+			return interaction.reply('No trades yet, there is nothing to show.');
+		}
+
 		const { price, supply, reserve } = last_trade;
 
 		const priceView = price.toFixed(4);

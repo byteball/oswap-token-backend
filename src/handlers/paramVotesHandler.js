@@ -11,11 +11,20 @@ exports.paramVotesHandler = async (triggerUnit, responseObj) => {
     const ts = triggerUnit.timestamp;
 
     const userData = await dag.readAAStateVars(process.env.AA_ADDRESS, `user_${author}`).then(vars => vars[`user_${author}`]);
-    const leader = await dag.readAAStateVars(process.env.AA_ADDRESS, `leader_${name}`).then(vars => vars[`leader_${name}`]);
-    const leaderVp = await dag.readAAStateVars(process.env.AA_ADDRESS, `value_votes_${name}_${leader.value}`).then(vars => vars[`value_votes_${name}_${leader.value}`]);
-    const leaderVpView = Number(getCurrentVpByNormalized(leaderVp || 0) / 10 ** 9).toFixed(9);
 
     if (!userData) return;
+
+    const leader = await dag.readAAStateVars(process.env.AA_ADDRESS, `leader_${name}`).then(vars => vars[`leader_${name}`]);
+
+    // there may be no leader yet (first vote for this parameter), in which case there is no
+    // value_votes_ var to read either — value can legitimately be 0, so compare with undefined
+    const hasLeader = leader?.value !== undefined;
+
+    const leaderVp = hasLeader
+        ? await dag.readAAStateVars(process.env.AA_ADDRESS, `value_votes_${name}_${leader.value}`).then(vars => vars[`value_votes_${name}_${leader.value}`])
+        : null;
+
+    const leaderVpView = hasLeader ? Number(getCurrentVpByNormalized(leaderVp || 0) / 10 ** 9).toFixed(9) : 'N/A';
 
     const voteVp = getCurrentVpByNormalized(userData.normalized_vp || 0);
     const voteVpView = +Number(voteVp / 10 ** 9).toFixed(9);
@@ -31,7 +40,7 @@ exports.paramVotesHandler = async (triggerUnit, responseObj) => {
         .addFields({ name: 'Value', value: String(value), inline: true })
         .addFields({ name: 'Vote VP', value: String(voteVpView), inline: true })
         .addFields({ name: 'Current VP', value: String(currentVpView), inline: true })
-        .addFields({ name: 'Leader', value: String(leader.value), inline: true })
+        .addFields({ name: 'Leader', value: hasLeader ? String(leader.value) : 'N/A', inline: true })
         .addFields({ name: 'Leader VP', value: String(leaderVpView), inline: true })
         .addFields({ name: '\b', value: '\b', inline: true })
         .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
