@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const moment = require("moment");
 const dag = require('aabot/dag.js');
+const { getAddressUrl } = require("../../utils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,7 +17,7 @@ module.exports = {
             if (split.length === 2) {
                 const address = split[1];
 
-                users.push({ address, balance: data.balance, expiry: moment.unix(data.expiry_ts).format("LL") })
+                users.push({ address, balance: data.balance, expiry: moment.unix(data.expiry_ts).utc().format("LL") })
             }
         });
 
@@ -25,7 +26,7 @@ module.exports = {
             .slice(0, 10)
             .map((u) => ({
                 name: ' ',
-                value: `[${u.address}](https://explorer.obyte.org/address/${u.address}) staked ${+(u.balance / 10 ** 9).toFixed(9)} OSWAP until ${u.expiry}`
+                value: `[${u.address}](${getAddressUrl(u.address)}) staked ${+(u.balance / 10 ** 9).toFixed(9)} OSWAP until ${u.expiry}`
             }));
 
         const exampleEmbed = {

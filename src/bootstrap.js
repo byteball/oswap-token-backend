@@ -31,6 +31,7 @@ module.exports = async () => {
     || process.env.DISCORD_EVENT_STAKE_TOKEN
     || process.env.DISCORD_EVENT_UNSTAKE_TOKEN
     || process.env.DISCORD_EVENT_WITHDRAW_REWARDS
+    || process.env.DISCORD_EVENT_ADD_PROPOSAL
   ) {
     throw Error(
       "Please specify environment variables for discord"

@@ -2,7 +2,7 @@ const dag = require('aabot/dag.js');
 const conf = require("ocore/conf.js");
 const moment = require('moment');
 
-const { getDataByTriggerUnit, getResponseVarsByResponseObj, getPoolAssetInfo } = require("../utils");
+const { getDataByTriggerUnit, getResponseVarsByResponseObj, getPoolAssetInfo, getUnitUrl, getAddressUrl, getAssetUrl } = require("../utils");
 const DiscordService = require("../discord");
 const { DbService } = require("../db");
 
@@ -40,9 +40,9 @@ exports.poolListedHandlerNotification = async (triggerUnit, responseObj) => {
         .setColor(address ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Whitelist: Pool was ${message}`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
-        .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
-        .addFields({ value: `**Pool name:** [${address ? symbol || name || 'n/a' : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
+        .setURL(getUnitUrl(triggerUnit.unit))
+        .addFields({ value: `**Author:** [${author}](${getAddressUrl(author)})`, name: ' ', inline: false })
+        .addFields({ value: `**Pool name:** [${address ? symbol || name || 'n/a' : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : getAssetUrl(pool_asset)})`, name: ' ', inline: false })
         .addFields({ value: 'You can add pool or vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
 
