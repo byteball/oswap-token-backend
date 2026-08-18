@@ -2,7 +2,7 @@ const dag = require('aabot/dag.js');
 const conf = require("ocore/conf.js");
 
 const DiscordService = require("../discord");
-const { getDataByTriggerUnit, getCurrentVpByNormalized, getPoolAssetInfo } = require("../utils")
+const { getDataByTriggerUnit, getCurrentVpByNormalized, getPoolAssetInfo, getUnitUrl, getAddressUrl, getAssetUrl } = require("../utils")
 
 exports.poolVotesHandler = async (triggerUnit, responseObj) => {
     const { pool_asset, vote_whitelist, vote_blacklist } = getDataByTriggerUnit(triggerUnit);
@@ -30,11 +30,11 @@ exports.poolVotesHandler = async (triggerUnit, responseObj) => {
         .setColor(address ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Whitelist: voted ${vote_whitelist ? 'for' : 'against'}`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
-        .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
+        .setURL(getUnitUrl(triggerUnit.unit))
+        .addFields({ value: `**Author:** [${author}](${getAddressUrl(author)})`, name: ' ', inline: false })
         .addFields({ value: `**Vote VP:** ${currentUserVpView}`, name: ' ', inline: false })
         .addFields({ value: `**Current VP:** ${currentVpView}`, name: ' ', inline: false })
-        .addFields({ value: `**Pool name:** [${address ? symbol || name || 'n/a' : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : `https://explorer.obyte.org/asset/${pool_asset}`})`, name: ' ', inline: false })
+        .addFields({ value: `**Pool name:** [${address ? symbol || name || 'n/a' : '`NOT AN OSWAP POOL`'}](${address ? `https://oswap.io/#/swap/${address}` : getAssetUrl(pool_asset)})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
         .addFields({ value: 'You can vote at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 

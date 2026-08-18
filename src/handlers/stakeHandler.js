@@ -4,7 +4,7 @@ const conf = require("ocore/conf.js");
 
 const { DbService } = require("../db");
 const DiscordService = require("../discord");
-const { getDataByTriggerUnit } = require("../utils")
+const { getDataByTriggerUnit, getUnitUrl, getAddressUrl, getAssetUrl } = require("../utils")
 
 exports.stakeHandler = async (triggerUnit, responseObj) => {
     const payload = getDataByTriggerUnit(triggerUnit);
@@ -47,7 +47,7 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         // asset is unknown when the pool is missing from our db entirely, so there is nothing to link to
         const poolView = address
             ? `[${String(view)}](https://oswap.io/#/swap/${address})`
-            : (asset ? `[\`NOT AN OSWAP POOL\`](https://explorer.obyte.org/asset/${asset})` : '`NOT AN OSWAP POOL`');
+            : (asset ? `[\`NOT AN OSWAP POOL\`](${getAssetUrl(asset)})` : '`NOT AN OSWAP POOL`');
 
         return ({ value: `${poolView} — ${String(percent)}%`, name, inline: false });
     });
@@ -59,9 +59,9 @@ exports.stakeHandler = async (triggerUnit, responseObj) => {
         .setColor(!hasNonOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle(`Staking: ${amount > 0 ? "stake" : "re-stake"} OSWAP tokens`)
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
+        .setURL(getUnitUrl(triggerUnit.unit))
         .addFields(amountFields)
-        .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
+        .addFields({ value: `**Author:** [${author}](${getAddressUrl(author)})`, name: ' ', inline: false })
         .addFields({ value: `**Term:** ${payload.term} days (until ${untilDate})`, name, inline: false })
         .addFields({ value: "**Pool list**", name })
         .addFields(fields)

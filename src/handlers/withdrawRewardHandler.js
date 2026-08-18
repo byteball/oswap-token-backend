@@ -1,6 +1,7 @@
 const conf = require("ocore/conf.js");
 
 const DiscordService = require("../discord");
+const { getUnitUrl, getAddressUrl } = require("../utils");
 
 exports.withdrawRewardHandler = async (triggerUnit, responseObj) => {
     const author = responseObj.trigger_address;
@@ -24,9 +25,9 @@ exports.withdrawRewardHandler = async (triggerUnit, responseObj) => {
         .setColor(conf.discord_primary_color)
         .setTitle('Staking: withdraw rewards')
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
+        .setURL(getUnitUrl(triggerUnit.unit))
         .addFields({ value: `**Amount:** ${amountView} OSWAP`, name: ' ', inline: false })
-        .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
+        .addFields({ value: `**Author:** [${author}](${getAddressUrl(author)})`, name: ' ', inline: false })
         .setThumbnail('https://token.oswap.io/logo.png')
         .addFields({ value: 'You can withdraw your OSWAP rewards at [token.oswap.io](https://token.oswap.io)', name: ' ', inline: false  });
 

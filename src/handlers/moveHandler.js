@@ -1,7 +1,7 @@
 const conf = require("ocore/conf.js");
 
 const DiscordService = require("../discord");
-const { getDataByTriggerUnit } = require("../utils")
+const { getDataByTriggerUnit, getUnitUrl, getAddressUrl, getAssetUrl } = require("../utils")
 const { DbService } = require("../db");
 
 exports.moveHandler = async (triggerUnit, responseObj) => {
@@ -35,7 +35,7 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
         // asset is unknown when the pool is missing from our db entirely, so there is nothing to link to
         const poolView = address
             ? `[${String(nameView)}](https://oswap.io/#/swap/${address})`
-            : (asset ? `[\`NOT AN OSWAP POOL\`](https://explorer.obyte.org/asset/${asset})` : '`NOT AN OSWAP POOL`');
+            : (asset ? `[\`NOT AN OSWAP POOL\`](${getAssetUrl(asset)})` : '`NOT AN OSWAP POOL`');
 
         return ({ value: `${vpView > 0 ? `added ${Math.abs(vpView)} to` : `removed ${Math.abs(vpView)} from`} ${poolView}`, name: ' ', inline: false });
     });
@@ -44,8 +44,8 @@ exports.moveHandler = async (triggerUnit, responseObj) => {
         .setColor(!hasNonOswapPool ? conf.discord_primary_color : conf.discord_error_color)
         .setTitle('Staking: move votes')
         .setTimestamp(ts * 1e3)
-        .setURL(`https://explorer.obyte.org/${triggerUnit.unit}`)
-        .addFields({ value: `**Author:** [${author}](https://explorer.obyte.org/address/${author})`, name: ' ', inline: false })
+        .setURL(getUnitUrl(triggerUnit.unit))
+        .addFields({ value: `**Author:** [${author}](${getAddressUrl(author)})`, name: ' ', inline: false })
         .addFields({ value: "**Changes**", name: ' ' })
         .addFields(fields)
         .setThumbnail('https://token.oswap.io/logo.png')

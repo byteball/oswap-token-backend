@@ -11,6 +11,7 @@ const { paramVotesHandler } = require("./handlers/paramVotesHandler.js");
 const { moveHandler } = require("./handlers/moveHandler.js");
 const { unstakeHandler } = require("./handlers/unstakeHandler.js");
 const { withdrawRewardHandler } = require("./handlers/withdrawRewardHandler.js");
+const { addProposalHandler } = require("./handlers/addProposalHandler.js");
 
 // aa-hooks already catches and logs errors thrown by hook callbacks, this covers everything
 // else (discord, webserver) that would otherwise fail silently
@@ -55,6 +56,7 @@ bootstrap().then(async () => {
       .isSuccess()
       .triggerDataContainsKey("changes")
       .triggerDataContainsKey("vote_shares")
+      .triggerDataContainsKey("group_key1")
   }
 
   if (process.env.DISCORD_EVENT_STAKE_TOKEN) {
@@ -97,6 +99,7 @@ bootstrap().then(async () => {
       .isSuccess()
       .triggerDataContainsKey("unstake")
       .triggerDataContainsKey("group_key")
+      .responseContainsKey("total_staked_balance")
   }
 
   if (process.env.DISCORD_EVENT_POOL_LISTED) {
@@ -119,6 +122,16 @@ bootstrap().then(async () => {
     newEventsHooks.register(withdrawRewardHandler)
       .isSuccess()
       .triggerDataContainsKey("withdraw_staking_reward")
+  }
+
+  if (process.env.DISCORD_EVENT_ADD_PROPOSAL) {
+    newEventsHooks.register(addProposalHandler)
+      .isSuccess()
+      .triggerDataContainsKey("add_proposal")
+      .triggerDataContainsKey("recipient")
+      .triggerDataContainsKey("amount")
+      .triggerDataContainsKey("unit")
+      .triggerDataContainsKey("expiry")
   }
 }).catch((e) => {
   console.error('startup failed', e);

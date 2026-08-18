@@ -1,11 +1,19 @@
 const moment = require('moment');
 const network = require('ocore/network.js');
+const conf = require('ocore/conf.js');
 const dag = require('aabot/dag.js');
 const token_registry = require('aabot/token_registry.js');
 
 const YEAR = 360 * 24 * 3600;
 const COMMON_TS = 1657843200;
 const EXCHANGE_RATES_TIMEOUT = 30 * 1000;
+
+// testnet lives on a separate explorer host; conf.testnet is fixed at startup from the env
+const EXPLORER_URL = `https://${conf.testnet ? "testnet" : ""}explorer.obyte.org`;
+
+const getUnitUrl = (unit) => `${EXPLORER_URL}/${unit}`;
+const getAddressUrl = (address) => `${EXPLORER_URL}/address/${address}`;
+const getAssetUrl = (asset) => `${EXPLORER_URL}/asset/${asset}`;
 
 const exists = (array) => {
   array.forEach((item) => {
@@ -128,7 +136,7 @@ const getUpdatedState = (state, appreciation_rate) => {
   };
 };
 
-const getDataByTriggerUnit = (triggerUnit)=> {
+const getDataByTriggerUnit = (triggerUnit) => {
   return triggerUnit.messages.find((m => m.app === 'data'))?.payload || {};
 }
 
@@ -140,6 +148,92 @@ const getCurrentVpByNormalized = (normalized_vp) => {
   return normalized_vp / 4 ** ((moment.utc().unix() - COMMON_TS) / YEAR);
 };
 
+// the AA stores each grant proposal under its own sequentially numbered var
+// (oswap.oscript: var['proposal_' || $num] = {recipient, amount, unit, expiry})
+const getProposal = (num) => dag.readAAStateVar(process.env.AA_ADDRESS, `proposal_${num}`);
+
+// add_proposal is the last case in the AA, so any earlier case (staking, votes, withdrawals)
+// handles the trigger when its own keys are present too, and add_proposal is then ignored —
+// yet the hook still fires on the key. The branch writes no response vars either, so the only
+// proof a proposal was really created is the state var it writes. Matching it also yields the
+// proposal number, which the AA does not report back.
+const findProposalByTriggerData = async ({ recipient, amount, unit, expiry }) => {
+  const vars = await dag.readAAStateVars(process.env.AA_ADDRESS, 'proposal_');
+
+  // trigger data arrives exactly as the client sent it — wallets send amount as a string —
+  // while the AA coerces it to a number before storing, so amounts are compared numerically
+  const key = Object.keys(vars).find((name) => {
+    const proposal = vars[name];
+
+    return proposal?.recipient === recipient
+      && Number(proposal?.amount) === Number(amount)
+      && proposal?.unit === unit
+      && proposal?.expiry === expiry;
+  });
+
+  return key ? { num: key.replace('proposal_', ''), ...vars[key] } : null;
+};
+
+const addProposalUnitFields = async (embed, proposalUnit) => {
+  if (!proposalUnit) return;
+
+  const explorerUrl = getUnitUrl(proposalUnit);
+
+  try {
+    const objJoint = await dag.readJoint(proposalUnit);
+    const messages = objJoint?.unit?.messages || [];
+
+    const textMsg = messages.find((m) => m.app === 'text');
+    const dataMsg = messages.find((m) => m.app === 'data');
+
+    if (textMsg && typeof textMsg.payload === 'string' && textMsg.payload.trim()) {
+      const text = textMsg.payload.trim();
+      const truncatedText = text.length > 1000 ? text.slice(0, 997) + '...' : text;
+      embed.addFields({
+        name: 'Proposal Unit',
+        value: `[${proposalUnit}](${explorerUrl})`,
+        inline: false
+      });
+      embed.addFields({
+        name: 'Text',
+        value: truncatedText,
+        inline: false
+      });
+    } else if (dataMsg && typeof dataMsg.payload === 'object' && dataMsg.payload !== null) {
+      embed.addFields({
+        name: 'Proposal Unit',
+        value: `[${proposalUnit}](${explorerUrl})`,
+        inline: false
+      });
+
+      const entries = Object.entries(dataMsg.payload).filter(([key]) => key !== '');
+      const MAX_FIELDS = 12;
+      entries.slice(0, MAX_FIELDS).forEach(([key, val]) => {
+        const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+        const truncatedVal = strVal.length > 250 ? strVal.slice(0, 247) + '...' : strVal;
+        embed.addFields({
+          name: key.length > 256 ? key.slice(0, 253) + '...' : key,
+          value: truncatedVal || 'N/A',
+          inline: true
+        });
+      });
+    } else {
+      embed.addFields({
+        name: 'Proposal Unit',
+        value: `[${proposalUnit}](${explorerUrl})`,
+        inline: false
+      });
+    }
+  } catch (e) {
+    console.error('[proposal unit] failed to read', proposalUnit, e && e.message);
+
+    embed.addFields({
+      name: 'Proposal Unit',
+      value: `[${proposalUnit}](${explorerUrl})`,
+      inline: false
+    });
+  }
+};
 
 exports.getUpdatedState = getUpdatedState;
 exports.exists = exists;
@@ -149,3 +243,9 @@ exports.getPoolAssetInfo = getPoolAssetInfo;
 exports.getDataByTriggerUnit = getDataByTriggerUnit;
 exports.getCurrentVpByNormalized = getCurrentVpByNormalized;
 exports.getResponseVarsByResponseObj = getResponseVarsByResponseObj;
+exports.addProposalUnitFields = addProposalUnitFields;
+exports.getProposal = getProposal;
+exports.findProposalByTriggerData = findProposalByTriggerData;
+exports.getUnitUrl = getUnitUrl;
+exports.getAddressUrl = getAddressUrl;
+exports.getAssetUrl = getAssetUrl;
